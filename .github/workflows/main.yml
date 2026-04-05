@@ -1,0 +1,16 @@
+name: 24/7 Auto Signal Bot
+
+on:
+  schedule:
+    - cron: '*/1 * * * *' # প্রতি ১ মিনিট পরপর চলবে
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Signal
+        run: |
+          curl -s "https://api.telegram.org/bot8790924332:AAEacJ932YtiO0S0REwxSxbV2v4rRsJdIG4/sendMessage?chat_id=@pro_predicson&text=Bot%20is%20Running%2024/7%20Automatically&parse_mode=Markdown"
+          curl -s "https://api.telegram.org/bot8790924332:AAEacJ932YtiO0S0REwxSxbV2v4rRsJdIG4/sendMessage?chat_id=@BEST_INCOME_NETWRK_99&text=Bot%20is%20Running%2024/7%20Automatically&parse_mode=Markdown"
+          curl -s "https://api.telegram.org/bot8790924332:AAEacJ932YtiO0S0REwxSxbV2v4rRsJdIG4/sendMessage?chat_id=@smart_media_bd_official&text=Bot%20is%20Running%2024/7%20Automatically&parse_mode=Markdown"
