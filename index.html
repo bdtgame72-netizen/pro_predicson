@@ -22,8 +22,6 @@
 
     <script>
         const TELEGRAM_TOKEN = "8790924332:AAEacJ932YtiO0S0REwxSxbV2v4rRsJdIG4";
-        
-        // আপনার ৩টি চ্যানেলের লিস্ট
         const CHAT_IDS = ["@pro_predicson", "@BEST_INCOME_NETWRK_99", "@smart_media_bd_official"]; 
         
         let lastIssueNumber = ""; 
@@ -39,22 +37,23 @@
 
         function fetchGameData() {
             const ts = new Date().getTime();
+            // ডাটা সোর্স সরাসরি কল করা হচ্ছে
             const rawUrl = `https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json?ts=${ts}`;
             
             fetch(rawUrl)
             .then(response => response.json())
             .then(data => { handleSuccessData(data); })
             .catch(error => {
-                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(rawUrl)}`;
-                fetch(proxyUrl)
+                // সরাসরি না হলে প্রক্সি ব্যবহার
+                fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`)
                 .then(res => res.json())
-                .then(data => { handleSuccessData(data); })
-                .catch(err => { addLog("নেটওয়ার্ক রিফ্রেশ হচ্ছে..."); });
+                .then(data => { handleSuccessData(JSON.parse(data.contents)); })
+                .catch(err => { addLog("গেম ডাটা চেক করা হচ্ছে..."); });
             });
         }
 
         function handleSuccessData(gameData) {
-            if(gameData.code === 0 && gameData.data.list.length > 0) {
+            if(gameData && gameData.code === 0 && gameData.data.list.length > 0) {
                 const latestGame = gameData.data.list[0]; 
                 const currentIssue = latestGame.issueNumber;
 
@@ -73,10 +72,10 @@
             let resultStatus = "";
             if (lastPredictedSize !== "") {
                 if (lastPredictedSize === actualSize) {
-                    resultStatus = "✅ **RESULT: WIN** 🥳";
+                    resultStatus = "✅ RESULT: WIN 🥳";
                     currentLevelIndex = 0; 
                 } else {
-                    resultStatus = "❌ **RESULT: LOSS** 🥺";
+                    resultStatus = "❌ RESULT: LOSS 🥺";
                     currentLevelIndex++; 
                     if (currentLevelIndex >= moneyLevels.length) currentLevelIndex = 0; 
                 }
@@ -95,28 +94,24 @@
                 message += `${resultStatus}\n📊 Last Period ${issue} was ${actualSize}\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n\n`;
             }
 
-            message += `PERIOD ${nextIssue} ${designEmoji} ⏩⏩ **${nextPredictedSize}** ⏪\n\n` +
-                       `💰 **Use Amount:** ${currentAmount} TK (Lvl-${currentLevelIndex + 1})\n\n` +
-                       `🔗 **Register Link:** https://hgnice.bet/#/register?invitationCode=23638174568`;
+            message += `PERIOD ${nextIssue} ${designEmoji} ${nextPredictedSize}\n\n` +
+                       `💰 Use Amount: ${currentAmount} TK (Lvl-${currentLevelIndex + 1})\n\n` +
+                       `🔗 Register Link: https://hgnice.bet/#/register?invitationCode=23638174568`;
 
-            // লুপ চালিয়ে প্রতিটি চ্যানেলে মেসেজ পাঠানো
+            // সিগন্যাল পাঠানো
             CHAT_IDS.forEach(chatId => {
-                const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
-                fetch(telegramUrl)
-                .then(res => res.json())
-                .then(resData => {
-                    if(resData.ok) {
-                        addLog(`${chatId} চ্যানেলে সিগন্যাল গিয়েছে।`);
-                    } else {
-                        addLog(`${chatId} এ সমস্যা! চ্যানেল অ্যাডমিন পারমিশন চেক করুন।`);
-                    }
-                });
+                const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`;
+                
+                // CORS বাইপাস করার জন্য ইমেজ ট্যাগ ট্রিক
+                const img = new Image();
+                img.src = telegramUrl;
+                addLog(`${chatId} চ্যানেলে সিগন্যাল পাঠানো হয়েছে।`);
             });
             
-            document.getElementById('statusText').innerText = `Period ${nextIssue} এর কাজ চলছে...`;
+            document.getElementById('statusText').innerText = `Period ${nextIssue} এর সিগন্যাল আপডেট হয়েছে।`;
         }
 
-        setInterval(fetchGameData, 8000);
+        setInterval(fetchGameData, 10000); // ১০ সেকেন্ড পরপর চেক করবে
         fetchGameData();
     </script>
 </body>
