@@ -1,4 +1,4 @@
-name: 24/7 Auto Signal Bot
+name: 24/7 WinGo Auto Signal
 
 on:
   schedule:
@@ -6,11 +6,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-bot:
+  refresh-signal:
     runs-on: ubuntu-latest
     steps:
-      - name: Send Signal
+      - name: Open Signal Link
         run: |
-          curl -s "https://api.telegram.org/bot8790924332:AAEacJ932YtiO0S0REwxSxbV2v4rRsJdIG4/sendMessage?chat_id=@pro_predicson&text=Bot%20is%20Running%2024/7%20Automatically&parse_mode=Markdown"
-          curl -s "https://api.telegram.org/bot8790924332:AAEacJ932YtiO0S0REwxSxbV2v4rRsJdIG4/sendMessage?chat_id=@BEST_INCOME_NETWRK_99&text=Bot%20is%20Running%2024/7%20Automatically&parse_mode=Markdown"
-          curl -s "https://api.telegram.org/bot8790924332:AAEacJ932YtiO0S0REwxSxbV2v4rRsJdIG4/sendMessage?chat_id=@smart_media_bd_official&text=Bot%20is%20Running%2024/7%20Automatically&parse_mode=Markdown"
+          # এটি আপনার গিটহাব পেজটি সার্ভারে ওপেন করবে যা সিগন্যাল ট্রিগার করবে
+          curl -sL "https://bdtgame72-netizen.github.io/pro_predicson/" > /dev/null
+          echo "Signal Triggered Successfully"
