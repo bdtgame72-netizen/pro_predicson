@@ -1,4 +1,4 @@
-name: 24/7 WinGo Auto Signal
+name: 24/7 WinGo Auto Run
 
 on:
   schedule:
@@ -6,11 +6,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  refresh-signal:
+  run-signal:
     runs-on: ubuntu-latest
     steps:
-      - name: Open Signal Link
+      - name: Trigger Signal
         run: |
-          # এটি আপনার গিটহাব পেজটি সার্ভারে ওপেন করবে যা সিগন্যাল ট্রিগার করবে
-          curl -sL "https://bdtgame72-netizen.github.io/pro_predicson/" > /dev/null
-          echo "Signal Triggered Successfully"
+          curl -sL "https://bdtgame72-netizen.github.io/pro_predicson/"
