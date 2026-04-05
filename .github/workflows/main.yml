@@ -2,7 +2,7 @@ name: 24/7 WinGo Multi-Bot Pro
 
 on:
   schedule:
-    - cron: '*/1 * * * *' # প্রতি ১ মিনিট পরপর চলবে
+    - cron: '*/2 * * * *' # প্রতি ২ মিনিট পরপর গিটহাব নিজে থেকেই রান হবে
   workflow_dispatch:
   push:
 
@@ -10,31 +10,32 @@ jobs:
   run-bot:
     runs-on: ubuntu-latest
     steps:
-      - name: Send WinGo Signal
+      - name: Fetch and Send Prediction
         run: |
-          # গেম ডাটা ফেচ করা
-          DATA=$(curl -s "https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json")
-          
-          # ডাটা থেকে লেটেস্ট পিরিয়ড এবং রেজাল্ট বের করা
-          ISSUE=$(echo $DATA | jq -r '.data.list[0].issueNumber')
-          NUMBER=$(echo $DATA | jq -r '.data.list[0].number')
-          
-          if [ "$NUMBER" -ge 5 ]; then ACTUAL="BIG"; else ACTUAL="SMALL"; fi
-          
-          # প্রেডিকশন লজিক (র‍্যান্ডম বিগ/স্মল)
-          PRED_ARRAY=("BIG" "SMALL")
-          PRED=${PRED_ARRAY[$[$RANDOM % 2]]}
-          NEXT_ISSUE=$(($ISSUE + 1))
-          
-          if [ "$PRED" == "BIG" ]; then EMOJI="🟢🟢🟢"; else EMOJI="🔴🔴🔴"; fi
-          
-          # মেসেজ তৈরি করা
-          MESSAGE="📊 Last Period $ISSUE was $ACTUAL%0A⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯%0A%0APERIOD $NEXT_ISSUE $EMOJI **$PRED**%0A%0A💰 Use Amount: 10 TK (Lvl-1)%0A%0A🔗 Register Link: https://hgnice.bet/#/register?invitationCode=23638174568"
-          
-          # ৩টি চ্যানেলে সিগন্যাল পাঠানো
+          # ৩টি চ্যানেলের তথ্য এবং গেম ডাটা
           TOKEN="8790924332:AAEacJ932YtiO0S0REwxSxbV2v4rRsJdIG4"
           CHANNELS=("@pro_predicson" "@BEST_INCOME_NETWRK_99" "@smart_media_bd_official")
           
+          # গেম সার্ভার থেকে লেটেস্ট রেজাল্ট আনা
+          DATA=$(curl -s "https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json")
+          ISSUE=$(echo $DATA | jq -r '.data.list[0].issueNumber')
+          NUMBER=$(echo $DATA | jq -r '.data.list[0].number')
+          
+          # লাস্ট রেজাল্ট চেক (বিগ না স্মল)
+          if [ "$NUMBER" -ge 5 ]; then ACTUAL="SMALL"; else ACTUAL="BIG"; fi
+          
+          # পরবর্তী প্রেডিকশন (র‍্যান্ডম লজিক)
+          PRED_OPTIONS=("BIG" "SMALL")
+          NEXT_PRED=${PRED_OPTIONS[$[$RANDOM % 2]]}
+          NEXT_ISSUE=$(python3 -c "print(int('$ISSUE') + 1)")
+          
+          # ডিজাইন সেট করা
+          if [ "$NEXT_PRED" == "BIG" ]; then EMOJI="🟢🟢🟢"; else EMOJI="🔴🔴🔴"; fi
+
+          # আপনার দেওয়া ডিজাইনে মেসেজ তৈরি
+          MESSAGE="📊 Last Period $ISSUE was $ACTUAL%0A⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯%0A%0APERIOD $NEXT_ISSUE $EMOJI **$NEXT_PRED**%0A%0A💰 **Use Amount:** 10 TK (Lvl-1)%0A%0A🔗 **Register Link:** https://hgnice.bet/#/register?invitationCode=23638174568"
+
+          # লুপ চালিয়ে ৩টি চ্যানেলে মেসেজ পাঠানো
           for CHAT_ID in "${CHANNELS[@]}"; do
             curl -s "https://api.telegram.org/bot$TOKEN/sendMessage?chat_id=$CHAT_ID&text=$MESSAGE&parse_mode=Markdown"
           done
