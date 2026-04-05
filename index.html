@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WinGo 30S Multi-Channel Bot</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin-top: 50px; background-color: #1a1a1a; color: white;}
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; background: #2c2c2c; border-radius: 10px; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); }
+        .status { font-size: 18px; color: #ffc107; margin: 20px 0; }
+        .log-box { background: #000; color: #00ff00; padding: 15px; text-align: left; height: 180px; overflow-y: scroll; border-radius: 5px; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>🔥 WinGo 30S Multi-Bot 🔥</h2>
+        <p>এই পেজটি সচল থাকলে ৩টি চ্যানেলে অটো সিগন্যাল যাবে।</p>
+        <div class="status" id="statusText">বট চালু হচ্ছে...</div>
+        <div class="log-box" id="logBox">অপেক্ষা করুন...</div>
+    </div>
+
+    <script>
+        const TELEGRAM_TOKEN = "8790924332:AAEacJ932YtiO0S0REwxSxbV2v4rRsJdIG4";
+        
+        // আপনার ৩টি চ্যানেলের লিস্ট
+        const CHAT_IDS = ["@pro_predicson", "@BEST_INCOME_NETWRK_99", "@smart_media_bd_official"]; 
+        
+        let lastIssueNumber = ""; 
+        let lastPredictedSize = ""; 
+        let currentLevelIndex = 0;
+        const moneyLevels = [10, 30, 90, 270, 810, 2430];
+
+        function addLog(text) {
+            const logBox = document.getElementById('logBox');
+            logBox.innerHTML += `> ${text}<br>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function fetchGameData() {
+            const ts = new Date().getTime();
+            const rawUrl = `https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json?ts=${ts}`;
+            
+            fetch(rawUrl)
+            .then(response => response.json())
+            .then(data => { handleSuccessData(data); })
+            .catch(error => {
+                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(rawUrl)}`;
+                fetch(proxyUrl)
+                .then(res => res.json())
+                .then(data => { handleSuccessData(data); })
+                .catch(err => { addLog("নেটওয়ার্ক রিফ্রেশ হচ্ছে..."); });
+            });
+        }
+
+        function handleSuccessData(gameData) {
+            if(gameData.code === 0 && gameData.data.list.length > 0) {
+                const latestGame = gameData.data.list[0]; 
+                const currentIssue = latestGame.issueNumber;
+
+                if(currentIssue !== lastIssueNumber) {
+                    lastIssueNumber = currentIssue;
+                    processSignalAndResult(latestGame);
+                }
+            }
+        }
+
+        function processSignalAndResult(gameData) {
+            const issue = gameData.issueNumber;
+            const number = parseInt(gameData.number);
+            const actualSize = number >= 5 ? "BIG" : "SMALL";
+            
+            let resultStatus = "";
+            if (lastPredictedSize !== "") {
+                if (lastPredictedSize === actualSize) {
+                    resultStatus = "✅ **RESULT: WIN** 🥳";
+                    currentLevelIndex = 0; 
+                } else {
+                    resultStatus = "❌ **RESULT: LOSS** 🥺";
+                    currentLevelIndex++; 
+                    if (currentLevelIndex >= moneyLevels.length) currentLevelIndex = 0; 
+                }
+            }
+
+            const sizes = ["BIG", "SMALL"];
+            const nextPredictedSize = sizes[Math.floor(Math.random() * sizes.length)];
+            lastPredictedSize = nextPredictedSize; 
+            
+            const currentAmount = moneyLevels[currentLevelIndex];
+            const nextIssue = (BigInt(issue) + 1n).toString();
+            const designEmoji = nextPredictedSize === "BIG" ? "🟢🟢🟢" : "🔴🔴🔴";
+
+            let message = "";
+            if (resultStatus !== "") {
+                message += `${resultStatus}\n📊 Last Period ${issue} was ${actualSize}\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n\n`;
+            }
+
+            message += `PERIOD ${nextIssue} ${designEmoji} ⏩⏩ **${nextPredictedSize}** ⏪\n\n` +
+                       `💰 **Use Amount:** ${currentAmount} TK (Lvl-${currentLevelIndex + 1})\n\n` +
+                       `🔗 **Register Link:** https://hgnice.bet/#/register?invitationCode=23638174568`;
+
+            // লুপ চালিয়ে প্রতিটি চ্যানেলে মেসেজ পাঠানো
+            CHAT_IDS.forEach(chatId => {
+                const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
+                fetch(telegramUrl)
+                .then(res => res.json())
+                .then(resData => {
+                    if(resData.ok) {
+                        addLog(`${chatId} চ্যানেলে সিগন্যাল গিয়েছে।`);
+                    } else {
+                        addLog(`${chatId} এ সমস্যা! চ্যানেল অ্যাডমিন পারমিশন চেক করুন।`);
+                    }
+                });
+            });
+            
+            document.getElementById('statusText').innerText = `Period ${nextIssue} এর কাজ চলছে...`;
+        }
+
+        setInterval(fetchGameData, 8000);
+        fetchGameData();
+    </script>
+</body>
+</html>
